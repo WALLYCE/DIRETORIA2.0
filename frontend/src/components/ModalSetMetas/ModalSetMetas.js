@@ -1,0 +1,97 @@
+import * as React from 'react';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import {useEffect} from 'react';
+import TextField from '@mui/material/TextField';
+import { Grid } from '@mui/material';
+import { ModalMetasContext } from '../../context/ModalMetasContext';
+
+
+export default function ModalSetMetas(props) {
+ 
+
+ 
+  const [metas, setMetas] = React.useState()
+  const {modalMetas, setModalMetas} = React.useContext(ModalMetasContext)
+
+  useEffect(()=>{
+    fetch('http://192.168.88.88:5000/metas', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json'
+      },
+     }).then(res => res.json())
+     .then(resposta => {
+       setMetas(resposta)
+     })
+  },[])
+  
+  const handleClickSave =()=> {
+
+    fetch('http://192.168.88.88:5000/metas', {
+    method: 'PATCH',
+    headers: {
+      'Accept': 'application/json, text/plain, */*',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({newMetas: metas})
+  }).then(res=> res.text())
+  .then((resposta)=>{
+    alert(resposta)
+     setModalMetas(false)
+  })
+  }
+       
+const handleChangeMeta = (event) => {
+  const fieldValue = event.target.value;
+  const fieldID = event.target.getAttribute('id')
+  metas[fieldID]['meta_vendas'] = event.target.value;
+  console.log(metas[fieldID])
+}
+  
+
+  return (
+    <div>
+      <Dialog
+        scroll={'body'}
+        maxWidth={'md'}
+        open={modalMetas} 
+        onClose={()=>{setModalMetas(false)}}
+        fullWidth={true}
+        aria-labelledby="scroll-dialog-title"
+        aria-describedby="scroll-dialog-description"
+      >
+        <DialogTitle id="scroll-dialog-title">Definir Metas</DialogTitle>
+        <DialogContent>
+      <Grid container >
+      {metas && metas.map((item, index)=>{
+        return (
+                   <Grid item sx={{my: 3}} xs={6} sm={6} md={6} key={item.id_cidade_meta_vendas} component={TextField} 
+                   id={index.toString()}
+                   defaultValue={item.meta_vendas}
+                   name="meta_vendas"
+                   label={item.cidade_nome}
+                   type="number"
+                   onChange={handleChangeMeta}
+                   InputLabelProps={{
+                     shrink: true,
+                   }}
+                 />
+
+
+        )
+      })
+    }
+      </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClickSave} >Salvar</Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+}
